@@ -4,10 +4,10 @@ const env = process.env;
 
 const config = {
   db: {
-    host: env.DB_HOST,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
+    host: env.DB_HOST || 'localhost',
+    user: env.DB_USER || 'db-odonto',
+    password: env.DB_PASSWORD || '123456',
+    database: env.DB_NAME || 'db_clinica_odonto',
   },
 };
 

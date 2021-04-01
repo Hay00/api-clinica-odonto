@@ -3,7 +3,7 @@ const helper = require('../helper');
 
 async function getAll(page = 1) {
   const offset = helper.getOffset(page, 10);
-  const rows = await db.query('SELECT * FROM Cliente;');
+  const rows = await db.query('SELECT * FROM Agenda;');
   const data = helper.emptyOrRows(rows);
   const meta = { page };
 
@@ -13,13 +13,11 @@ async function getAll(page = 1) {
   };
 }
 
-async function add({ nome, cpf, dataNascimento, sexo }) {
+async function add({ idCliente, data, hora, concluida }) {
   const result = await db.query(
-    `INSERT INTO Cliente
-    (nome,cpf,dataNascimento,sexo) 
-    values
-    (?,?,?,?);`,
-    [nome, cpf, dataNascimento, sexo]
+    `INSERT INTO Agenda (idCliente, data, hora, concluida) 
+    values(?,?,?,?);`,
+    [idCliente, data, hora, concluida]
   );
 
   let message = 'Error in creating user';
@@ -27,13 +25,13 @@ async function add({ nome, cpf, dataNascimento, sexo }) {
   if (result.affectedRows) {
     message = 'User created successfully';
   }
-  return message;
+  return { message };
 }
 
-async function find(id) {
+async function get(id) {
   const result = await db.query(
-    `SELECT * FROM Cliente 
-    WHERE idCliente=?;`,
+    `SELECT * FROM Agenda 
+    WHERE idAgenda=?;`,
     [id]
   );
   let message = 'Error in finding user';
@@ -44,11 +42,11 @@ async function find(id) {
   return result[0];
 }
 
-async function update(id, { nome, cpf, dataNascimento, sexo }) {
+async function update(id, { idCliente, data, hora, concluida }) {
   const result = await db.query(
-    `UPDATE Cliente SET nome=?, cpf=?, dataNascimento=?, sexo=? 
-    WHERE idCliente=?;`,
-    [nome, cpf, dataNascimento, sexo, id]
+    `UPDATE Agenda SET idCliente=?, data=?, hora=?, concluida=?
+    WHERE idAgenda=?;`,
+    [idCliente, data, hora, concluida, id]
   );
   let message = 'Error in updating user';
 
@@ -60,7 +58,9 @@ async function update(id, { nome, cpf, dataNascimento, sexo }) {
 }
 
 async function remove(id) {
-  const result = await db.query(`DELETE FROM Cliente WHERE idCliente=?`, [id]);
+  const result = await db.query(`DELETE FROM Agenda WHERE idAgenda=?`, [
+    id,
+  ]);
 
   let message = 'Error in deleting user';
 
@@ -73,7 +73,7 @@ async function remove(id) {
 
 module.exports = {
   add,
-  find,
+  get,
   getAll,
   remove,
   update,
