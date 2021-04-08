@@ -1,5 +1,5 @@
-const db = require('./db');
-const helper = require('../helper');
+const db = require('../services/db');
+const helper = require('../utils/helper');
 
 async function getAll(page = 1) {
   const offset = helper.getOffset(page, 10);
@@ -14,62 +14,74 @@ async function getAll(page = 1) {
 }
 
 async function add({ nome, unidades, valor }) {
+  if (!(nome && unidades && valor)) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
   const result = await db.query(
     `INSERT INTO Medicamentos (nome, unidades, valor) 
     values(?,?,?);`,
     [nome, unidades, valor]
   );
 
-  let message = 'Error in creating user';
+  const id = result.insertId;
 
   if (result.affectedRows) {
-    message = 'User created successfully';
+    return { id, statusCode: 200 };
   }
-  return { message };
+  return { message: 'Error in creating medicine', statusCode: 500 };
 }
 
 async function get(id) {
+  if (!id) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
   const result = await db.query(
     `SELECT * FROM Medicamentos 
     WHERE idMedicamento=?;`,
     [id]
   );
-  let message = 'Error in finding user';
+
   if (result[0]) {
-    message = 'User found successfully';
+    return { values: result[0], statusCode: 200 };
   }
 
-  return result[0];
+  return { message: 'Medicine not found', statusCode: 404 };
 }
 
 async function update(id, { nome, unidades, valor }) {
+  if (!(id && nome && unidades && valor)) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
   const result = await db.query(
     `UPDATE Medicamentos SET nome=?, unidades=?, valor=?
     WHERE idMedicamento=?;`,
     [nome, unidades, valor, id]
   );
-  let message = 'Error in updating user';
 
   if (result.affectedRows) {
-    message = 'User updated successfully';
+    return { id, statusCode: 200 };
   }
 
-  return { message };
+  return { message: 'Error in updating medicine', statusCode: 404 };
 }
 
 async function remove(id) {
+  if (!id) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
   const result = await db.query(
     `DELETE FROM Medicamentos WHERE idMedicamento=?`,
     [id]
   );
 
-  let message = 'Error in deleting user';
-
   if (result.affectedRows) {
-    message = 'User deleted successfully';
+    return { id, statusCode: 200 };
   }
 
-  return { message };
+  return { message: 'Error in removing medicine', statusCode: 404 };
 }
 
 module.exports = {

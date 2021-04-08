@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const client = require('../services/client');
+const client = require('../models/client');
+const authMiddleware = require('../middlewares/auth');
+
+router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
@@ -13,7 +16,8 @@ router.get('/', async function (req, res, next) {
 
 router.post('/', async function (req, res, next) {
   try {
-    res.json(await client.add(req.body));
+    const { id, message, statusCode } = await client.add(req.body);
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao criar o usuário `, err.message);
     next(err);
@@ -22,7 +26,8 @@ router.post('/', async function (req, res, next) {
 
 router.get('/:id', async function (req, res, next) {
   try {
-    res.json(await client.get(req.params.id));
+    const { message, statusCode, values } = await client.get(req.params.id);
+    res.status(statusCode).json({ message, values });
   } catch (err) {
     console.error(`Erro ao buscar o usuário `, err.message);
     next(err);
@@ -31,7 +36,11 @@ router.get('/:id', async function (req, res, next) {
 
 router.put('/:id', async function (req, res, next) {
   try {
-    res.json(await client.update(req.params.id, req.body));
+    const { id, message, statusCode } = await client.update(
+      req.params.id,
+      req.body
+    );
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao atualizar o usuário `, err.message);
     next(err);
@@ -40,7 +49,8 @@ router.put('/:id', async function (req, res, next) {
 
 router.delete('/:id', async function (req, res, next) {
   try {
-    res.json(await client.remove(req.params.id));
+    const { id, message, statusCode } = await client.remove(req.params.id);
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao deletar o usuário `, err.message);
     next(err);

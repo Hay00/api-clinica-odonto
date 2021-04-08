@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const medicine = require('../services/medicine');
+const medicine = require('../models/medicine');
+const authMiddleware = require('../middlewares/auth');
+
+router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
@@ -13,7 +16,8 @@ router.get('/', async function (req, res, next) {
 
 router.post('/', async function (req, res, next) {
   try {
-    res.json(await medicine.add(req.body));
+    const { id, message, statusCode } = await medicine.add(req.body);
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao criar o medicamento `, err.message);
     next(err);
@@ -22,7 +26,8 @@ router.post('/', async function (req, res, next) {
 
 router.get('/:id', async function (req, res, next) {
   try {
-    res.json(await medicine.get(req.params.id));
+    const { message, statusCode, values } = await medicine.get(req.params.id);
+    res.status(statusCode).json({ message, values });
   } catch (err) {
     console.error(`Erro ao buscar o medicamento `, err.message);
     next(err);
@@ -31,7 +36,11 @@ router.get('/:id', async function (req, res, next) {
 
 router.put('/:id', async function (req, res, next) {
   try {
-    res.json(await medicine.update(req.params.id, req.body));
+    const { id, message, statusCode } = await medicine.update(
+      req.params.id,
+      req.body
+    );
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao atualizar medicamento `, err.message);
     next(err);
@@ -40,7 +49,8 @@ router.put('/:id', async function (req, res, next) {
 
 router.delete('/:id', async function (req, res, next) {
   try {
-    res.json(await medicine.remove(req.params.id));
+    const { id, message, statusCode } = await medicine.remove(req.params.id);
+    res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao deletar medicamento `, err.message);
     next(err);

@@ -22,7 +22,6 @@ app.get('/', (req, res) => {
 });
 
 // Routing
-// app.use('/login', loginRoute);
 // app.use('/financeiro', financialRoute);
 app.use('/clientes', clientRoute);
 app.use('/equipamentos', equipmentRoute);
