@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = 4000;
 
@@ -11,6 +12,7 @@ const scheduleRoute = require('./src/routes/scheduleRoute');
 
 // Parsing body with json
 app.use(express.json());
+app.use(cors());
 app.use(
   express.urlencoded({
     extended: true,
