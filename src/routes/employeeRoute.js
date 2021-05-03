@@ -1,13 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const employee = require('../models/employee');
-const authMiddleware = require('../middlewares/auth');
+const authMiddleware = require('../middleware/auth');
 
 router.get('/', authMiddleware, async function (req, res, next) {
   try {
     res.json(await employee.getAll());
   } catch (err) {
     console.error(`Erro ao buscar os funcionários `, err.message);
+    next(err);
+  }
+});
+
+router.get('/dentistas', authMiddleware, async function (req, res, next) {
+  try {
+    res.json(await employee.getDentist());
+  } catch (err) {
+    console.error(`Erro ao buscar os dentistas `, err.message);
     next(err);
   }
 });

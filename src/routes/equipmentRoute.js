@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const equipment = require('../models/equipment');
-const authMiddleware = require('../middlewares/auth');
+const authMiddleware = require('../middleware/auth');
 
 router.use(authMiddleware);
 
@@ -20,6 +20,15 @@ router.post('/', async function (req, res, next) {
     res.status(statusCode).json({ id, message });
   } catch (err) {
     console.error(`Erro ao criar o equipamento `, err.message);
+    next(err);
+  }
+});
+
+router.get('/buscar', async function name(req, res, next) {
+  try {
+    res.json(await equipment.find(req.query));
+  } catch (err) {
+    console.error(`Erro ao buscar os equipamentos `, err.message);
     next(err);
   }
 });

@@ -4,10 +4,10 @@ const helper = require('../utils/helper');
 async function getAll(page = 1) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Cliente;');
-  const data = helper.emptyOrRows(rows);
+  const values = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return { data, meta };
+  return { values, meta };
 }
 
 async function add({ nome, cpf, dataNascimento, sexo }) {

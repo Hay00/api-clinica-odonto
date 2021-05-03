@@ -9,7 +9,7 @@ const authConfig = require('../config/auth.json');
  * @returns um token único
  */
 function generateToken(params = {}) {
-  return jwt.sign(params, authConfig.secret, { expiresIn: 86400 });
+  return jwt.sign(params, authConfig.secret, { expiresIn: '7d' });
 }
 
 /**
@@ -54,12 +54,20 @@ async function authenticate({ login, senha }) {
 async function getAll(page = 1) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Funcionario;');
-  const data = helper.emptyOrRows(rows);
+  const values = helper.emptyOrRows(rows);
   const meta = { page };
 
   return {
-    data,
+    values,
     meta,
+  };
+}
+
+async function getDentist() {
+  const values = await db.query('SELECT * FROM Funcionario;');
+
+  return {
+    values,
   };
 }
 
@@ -166,6 +174,7 @@ module.exports = {
   add,
   get,
   getAll,
+  getDentist,
   remove,
   update,
 };
