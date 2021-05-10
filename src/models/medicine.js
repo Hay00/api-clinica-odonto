@@ -84,8 +84,33 @@ async function remove(id) {
   return { message: 'Error in removing medicine', statusCode: 404 };
 }
 
+/**
+ * Busca um Funcionário
+ *
+ * @param {JSON} props args passado por HTTP
+ * @returns
+ */
+async function find(props) {
+  const { text } = props;
+  if (!text) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
+  const rows = await db.query(
+    `SELECT * FROM Medicamentos
+    WHERE nome like ? order by nome;`,
+    [`%${text}%`]
+  );
+
+  const values = helper.emptyOrRows(rows);
+  return {
+    values,
+  };
+}
+
 module.exports = {
   add,
+  find,
   get,
   getAll,
   remove,

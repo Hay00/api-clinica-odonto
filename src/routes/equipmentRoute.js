@@ -24,7 +24,7 @@ router.post('/', async function (req, res, next) {
   }
 });
 
-router.get('/buscar', async function name(req, res, next) {
+router.get('/buscar', async function (req, res, next) {
   try {
     res.json(await equipment.find(req.query));
   } catch (err) {

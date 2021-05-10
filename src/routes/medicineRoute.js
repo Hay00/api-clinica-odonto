@@ -24,6 +24,16 @@ router.post('/', async function (req, res, next) {
   }
 });
 
+router.get('/buscar', async function (req, res, next) {
+  try {
+    res.json(await medicine.find(req.query));
+  } catch (err) {
+    console.error(`Erro ao buscar os medicamentos `, err.message);
+    next(err);
+  }
+});
+
+
 router.get('/:id', async function (req, res, next) {
   try {
     const { message, statusCode, values } = await medicine.get(req.params.id);

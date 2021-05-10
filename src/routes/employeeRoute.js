@@ -43,6 +43,15 @@ router.post('/login', async function (req, res, next) {
   }
 });
 
+router.get('/buscar', async function (req, res, next) {
+  try {
+    res.json(await employee.find(req.query));
+  } catch (err) {
+    console.error(`Erro ao buscar os funcionários `, err.message);
+    next(err);
+  }
+});
+
 router.get('/:id', authMiddleware, async function (req, res, next) {
   try {
     const { message, statusCode, values } = await employee.get(req.params.id);

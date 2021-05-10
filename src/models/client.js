@@ -81,8 +81,33 @@ async function remove(id) {
   return { message: 'Error in removing client', statusCode: 404 };
 }
 
+/**
+ * Busca um cliente
+ *
+ * @param {JSON} props args passado por HTTP
+ * @returns
+ */
+async function find(props) {
+  const { text } = props;
+  if (!text) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
+  const rows = await db.query(
+    `SELECT * FROM Cliente
+    WHERE nome like ? order by nome;`,
+    [`%${text}%`]
+  );
+
+  const values = helper.emptyOrRows(rows);
+  return {
+    values,
+  };
+}
+
 module.exports = {
   add,
+  find,
   get,
   getAll,
   remove,

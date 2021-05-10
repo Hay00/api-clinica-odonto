@@ -128,16 +128,28 @@ async function get(id) {
  * @param {Number} id identificador do funcionário
  * @returns resultado da operação
  */
-async function update(id, { nome, cpf, dataNascimento, sexo, senha }) {
+async function update(id, props) {
+  const { nome, cpf, dataNascimento, sexo, senha, novaSenha } = props;
   if (!(id && nome && cpf && dataNascimento && sexo && senha)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
   }
 
-  const result = await db.query(
-    `UPDATE Funcionario SET nome=?, cpf=?, dataNascimento=?, sexo=?, senha=?
-    WHERE idFuncionario=?;`,
-    [nome, cpf, dataNascimento, sexo, senha, id]
-  );
+  let result;
+  if (novaSenha) {
+    result = await db.query(
+      `UPDATE Funcionario 
+      SET nome=?, cpf=?, dataNascimento=?, sexo=?, senha=? 
+      WHERE idFuncionario=? AND senha=?;`,
+      [nome, cpf, dataNascimento, sexo, novaSenha, id, senha]
+    );
+  } else {
+    result = await db.query(
+      `UPDATE Funcionario 
+      SET nome=?, cpf=?, dataNascimento=?, sexo=?
+      WHERE idFuncionario=? AND senha=?;`,
+      [nome, cpf, dataNascimento, sexo, id, senha]
+    );
+  }
 
   if (result.affectedRows) {
     return { id, statusCode: 200 };
@@ -169,9 +181,34 @@ async function remove(id) {
   return { message: 'Error in removing employee', statusCode: 404 };
 }
 
+/**
+ * Busca um Funcionário
+ *
+ * @param {JSON} props args passado por HTTP
+ * @returns
+ */
+async function find(props) {
+  const { text } = props;
+  if (!text) {
+    return { message: 'Bad Request, malformed syntax', statusCode: 400 };
+  }
+
+  const rows = await db.query(
+    `SELECT * FROM Funcionario
+    WHERE nome like ? order by nome;`,
+    [`%${text}%`]
+  );
+
+  const values = helper.emptyOrRows(rows);
+  return {
+    values,
+  };
+}
+
 module.exports = {
   authenticate,
   add,
+  find,
   get,
   getAll,
   getDentist,

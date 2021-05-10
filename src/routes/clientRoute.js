@@ -24,6 +24,15 @@ router.post('/', async function (req, res, next) {
   }
 });
 
+router.get('/buscar', async function (req, res, next) {
+  try {
+    res.json(await client.find(req.query));
+  } catch (err) {
+    console.error(`Erro ao buscar os usuários `, err.message);
+    next(err);
+  }
+});
+
 router.get('/:id', async function (req, res, next) {
   try {
     const { message, statusCode, values } = await client.get(req.params.id);
