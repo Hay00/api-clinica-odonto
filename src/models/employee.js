@@ -53,7 +53,10 @@ async function authenticate({ login, senha }) {
  */
 async function getAll(page = 1) {
   const offset = helper.getOffset(page, 10);
-  const rows = await db.query('SELECT * FROM Funcionario;');
+  const rows = await db.query(
+    `SELECT idFuncionario, nome, cpf, dataNascimento, sexo 
+    FROM Funcionario;`
+  );
   const values = helper.emptyOrRows(rows);
   const meta = { page };
 
@@ -110,7 +113,8 @@ async function get(id) {
   }
 
   const result = await db.query(
-    `SELECT * FROM Funcionario 
+    `SELECT idFuncionario, nome, cpf, dataNascimento, sexo 
+    FROM Funcionario 
     WHERE idFuncionario=?;`,
     [id]
   );

@@ -4,6 +4,7 @@ const app = express();
 const port = 4000;
 
 // Routes
+const financialRoute = require('./src/routes/financialRoute');
 const clientRoute = require('./src/routes/clientRoute');
 const equipmentRoute = require('./src/routes/equipmentRoute');
 const employeeRoute = require('./src/routes/employeeRoute');
@@ -20,11 +21,11 @@ app.use(
 );
 
 app.get('/', (req, res) => {
-  res.json({ message: 'ok' });
+  res.json({ message: 'A API está online!' });
 });
 
 // Routing
-// app.use('/financeiro', financialRoute);
+app.use('/financeiro', financialRoute);
 app.use('/clientes', clientRoute);
 app.use('/equipamentos', equipmentRoute);
 app.use('/funcionarios', employeeRoute);
