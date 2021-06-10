@@ -2,6 +2,7 @@ const db = require('../services/db');
 const jwt = require('jsonwebtoken');
 const helper = require('../utils/helper');
 const authConfig = require('../config/auth.json');
+const { SqlDateToBrl } = require('../utils/dateTransformer');
 
 /**
  * Gera um token que expira em 1 dia
@@ -24,46 +25,57 @@ async function authenticate({ login, senha }) {
   }
 
   const user = await db.query(
-    `SELECT cpf as id FROM Funcionario WHERE cpf=?;`,
+    `SELECT cpf as id, nome FROM Funcionario WHERE cpf=?;`,
     [login]
-  );
-
-  const password = await db.query(
-    `SELECT null FROM Funcionario WHERE cpf=? AND senha=?;`,
-    [login, senha]
   );
 
   if (!user[0]) {
     return { message: 'User not found!', statusCode: 400 };
   }
 
+  const password = await db.query(
+    `SELECT null FROM Funcionario WHERE cpf=? AND senha=?;`,
+    [login, senha]
+  );
+
   if (!password[0]) {
     return { message: 'Invalid password!', statusCode: 400 };
   }
 
-  const { id } = user[0];
+  const { id, nome } = user[0];
 
-  return { message: 'ok', statusCode: 200, token: generateToken({ id }) };
+  return { statusCode: 200, user: nome, token: generateToken({ id }) };
 }
 
 /**
- * Busca todos os funcionários
+ * Retorna todos os funcionários
+ *
  * @param {Number} page número da página
- * @returns todos os funcionários
+ * @returns JSON
  */
-async function getAll(page = 1) {
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query(
     `SELECT idFuncionario, nome, cpf, dataNascimento, sexo 
     FROM Funcionario;`
   );
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return {
-    values,
-    meta,
-  };
+  // Formatando para tabela
+  if (format) {
+    const values = result.map(
+      ({ idFuncionario, nome, cpf, dataNascimento, sexo }) => ({
+        id: idFuncionario,
+        nome,
+        cpf,
+        dataNascimento: SqlDateToBrl(dataNascimento),
+        sexo,
+      })
+    );
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
 async function getDentist() {
@@ -77,7 +89,8 @@ async function getDentist() {
 /**
  * Adiciona um novo funcionário
  *
- * @returns um token ou mensagem de erro
+ * @param {JSON} props valores
+ * @returns JSON
  */
 async function add({ nome, cpf, dataNascimento, sexo, senha }) {
   if (!(nome && cpf && dataNascimento && sexo && senha)) {
@@ -102,10 +115,10 @@ async function add({ nome, cpf, dataNascimento, sexo, senha }) {
 }
 
 /**
- * Busca um único funcionário específico
+ * Busca apenas um único funcionário
  *
  * @param {Number} id identificador do funcionário
- * @returns resultado da operação
+ * @returns JSON
  */
 async function get(id) {
   if (!id) {
@@ -129,8 +142,8 @@ async function get(id) {
 /**
  * Atualiza um funcionário específico
  *
- * @param {Number} id identificador do funcionário
- * @returns resultado da operação
+ * @param {JSON} props conteúdo
+ * @returns JSON
  */
 async function update(id, props) {
   const { nome, cpf, dataNascimento, sexo, senha, novaSenha } = props;
@@ -166,7 +179,7 @@ async function update(id, props) {
  * Remove um funcionário específico
  *
  * @param {Number} id identificador do funcionário
- * @returns resultado da operação
+ * @returns JSON
  */
 async function remove(id) {
   if (!id) {
@@ -189,7 +202,7 @@ async function remove(id) {
  * Busca um Funcionário
  *
  * @param {JSON} props args passado por HTTP
- * @returns
+ * @returns JSON
  */
 async function find(props) {
   const { text } = props;
@@ -203,7 +216,18 @@ async function find(props) {
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(
+    ({ idFuncionario, nome, cpf, dataNascimento, sexo }) => ({
+      id: idFuncionario,
+      nome,
+      cpf,
+      dataNascimento: SqlDateToBrl(dataNascimento),
+      sexo,
+    })
+  );
+
   return {
     values,
   };

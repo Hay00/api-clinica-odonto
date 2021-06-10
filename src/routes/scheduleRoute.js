@@ -7,7 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
-    res.json(await schedule.getAll());
+    res.json(await schedule.getAll(req.query));
   } catch (err) {
     console.error(`Erro ao buscar os agendamentos `, err.message);
     next(err);

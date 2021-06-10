@@ -10,6 +10,7 @@ const equipmentRoute = require('./src/routes/equipmentRoute');
 const employeeRoute = require('./src/routes/employeeRoute');
 const medicineRoute = require('./src/routes/medicineRoute');
 const scheduleRoute = require('./src/routes/scheduleRoute');
+const reportsRoute = require('./src/routes/reportsRoute');
 
 // Parsing body with json
 app.use(express.json());
@@ -31,7 +32,7 @@ app.use('/equipamentos', equipmentRoute);
 app.use('/funcionarios', employeeRoute);
 app.use('/medicamentos', medicineRoute);
 app.use('/agendamentos', scheduleRoute);
-// app.use('/relatorios', reportsRoute);
+app.use('/relatorios', reportsRoute);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

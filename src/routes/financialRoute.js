@@ -7,7 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
-    res.json(await financial.getAll());
+    res.json(await financial.getAll(req.query));
   } catch (err) {
     console.error(`Erro ao buscar as finanças `, err.message);
     next(err);

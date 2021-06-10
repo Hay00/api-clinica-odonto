@@ -7,7 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
-    res.json(await equipment.getAll());
+    res.json(await equipment.getAll(req.query));
   } catch (err) {
     console.error(`Erro ao buscar os equipamentos `, err.message);
     next(err);

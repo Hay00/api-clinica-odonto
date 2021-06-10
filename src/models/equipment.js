@@ -2,28 +2,35 @@ const db = require('../services/db');
 const helper = require('../utils/helper');
 
 /**
- * Retorna todas os equipamentos
+ * Retorna todos os equipamentos
  *
- * @param {Integer} page número da página
- * @returns {JSON}
+ * @param {Number} page número da página
+ * @returns JSON
  */
-async function getAll(page = 1) {
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Equipamentos order by nome;');
-  const values = helper.emptyOrRows(rows);
+
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return {
-    values,
-    meta,
-  };
+  if (format) {
+    // Formatando para tabela
+    const values = result.map(({ idEquipamento, nome, unidades }) => ({
+      id: idEquipamento,
+      nome,
+      unidades,
+    }));
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
 /**
  * Adiciona um novo equipamento
  *
  * @param {JSON} props valores
- * @returns {JSON}
+ * @returns JSON
  */
 async function add({ nome, unidades }) {
   if (!(nome && unidades)) {
@@ -46,8 +53,9 @@ async function add({ nome, unidades }) {
 
 /**
  * Busca apenas um único equipamento
+ *
  * @param {Number} id identificador do equipamento
- * @returns {JSON}
+ * @returns JSON
  */
 async function get(id) {
   if (!id) {
@@ -70,8 +78,8 @@ async function get(id) {
 /**
  * Atualiza um equipamento específico
  *
- * @param {JSON} props
- * @returns {JSON}
+ * @param {JSON} props conteúdo
+ * @returns JSON
  */
 async function update(id, { nome, unidades }) {
   if (!(id && nome && unidades)) {
@@ -95,7 +103,7 @@ async function update(id, { nome, unidades }) {
  * Remove um equipamento específico
  *
  * @param {Number} id identificador do equipamento
- * @returns {JSON}
+ * @returns JSON
  */
 async function remove(id) {
   if (!id) {
@@ -118,7 +126,7 @@ async function remove(id) {
  * Busca um equipamento
  *
  * @param {JSON} props args passado por HTTP
- * @returns
+ * @returns JSON
  */
 async function find(props) {
   const { text } = props;
@@ -132,7 +140,14 @@ async function find(props) {
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(({ idEquipamento, nome, unidades }) => ({
+    id: idEquipamento,
+    nome,
+    unidades,
+  }));
+
   return {
     values,
   };

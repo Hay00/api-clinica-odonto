@@ -1,13 +1,14 @@
 const db = require('../services/db');
+const { SqlDateToBrl } = require('../utils/dateTransformer');
 const helper = require('../utils/helper');
 
 /**
  * Retorna todas os agendamentos
  *
- * @param {Integer} page número da página
- * @returns {JSON}
+ * @param {Number} page número da página
+ * @returns JSON
  */
-async function getAll(page = 1) {
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
 
   const rows = await db.query(
@@ -23,13 +24,24 @@ async function getAll(page = 1) {
     INNER JOIN Cliente cl ON ag.idCliente = cl.idCliente
     INNER JOIN TipoAgenda ta ON ag.idTipo = ta.idTipo;`
   );
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return {
-    values,
-    meta,
-  };
+  if (format) {
+    // Formatando para a tabela
+    const values = result.map(
+      ({ idAgenda, cliente, dentista, data, hora, tipo, status }) => ({
+        id: idAgenda,
+        cliente,
+        dentista,
+        data: `${SqlDateToBrl(data)} - ${hora}`,
+        tipo,
+        status: !!status,
+      })
+    );
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
 /**
@@ -49,7 +61,7 @@ async function getTypes() {
  * Adiciona um novo agendamento
  *
  * @param {JSON} props valores
- * @returns {JSON}
+ * @returns JSON
  */
 async function add(props) {
   const { idCliente, idFuncionario, idTipo, data, hora, concluida } = props;
@@ -83,7 +95,7 @@ async function add(props) {
 /**
  * Busca apenas um único agendamento
  * @param {Number} id identificador do agendamento
- * @returns {JSON}
+ * @returns JSON
  */
 async function get(id) {
   if (!id) {
@@ -107,7 +119,7 @@ async function get(id) {
  * Atualiza um agendamento específico
  *
  * @param {JSON} props
- * @returns {JSON}
+ * @returns JSON
  */
 async function update(id, props) {
   const { idCliente, idFuncionario, idTipo, data, hora, concluida } = props;
@@ -141,7 +153,7 @@ async function update(id, props) {
  * Remove um agendamento específico
  *
  * @param {Number} id identificador do agendamento
- * @returns {JSON}
+ * @returns JSON
  */
 async function remove(id) {
   if (!id) {
@@ -185,7 +197,19 @@ async function find(props) {
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(
+    ({ idAgenda, cliente, dentista, data, hora, tipo, status }) => ({
+      id: idAgenda,
+      cliente,
+      dentista,
+      data: `${SqlDateToBrl(data)} - ${hora}`,
+      tipo,
+      status: !!status,
+    })
+  );
+
   return {
     values,
   };

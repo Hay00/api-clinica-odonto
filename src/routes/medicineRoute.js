@@ -7,7 +7,7 @@ router.use(authMiddleware);
 
 router.get('/', async function (req, res, next) {
   try {
-    res.json(await medicine.getAll());
+    res.json(await medicine.getAll(req.query));
   } catch (err) {
     console.error(`Erro ao buscar os medicamentos `, err.message);
     next(err);

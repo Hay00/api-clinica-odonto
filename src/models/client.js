@@ -1,15 +1,41 @@
 const db = require('../services/db');
+const { SqlDateToBrl } = require('../utils/dateTransformer');
 const helper = require('../utils/helper');
 
-async function getAll(page = 1) {
+/**
+ * Retorna todos os clientes
+ *
+ * @param {Number} page número da página
+ * @returns JSON
+ */
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Cliente;');
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return { values, meta };
+  // Formatando para tabela
+  if (format) {
+    const values = result.map(
+      ({ idCliente, nome, cpf, dataNascimento, sexo }) => ({
+        id: idCliente,
+        nome,
+        cpf,
+        dataNascimento: SqlDateToBrl(dataNascimento),
+        sexo,
+      })
+    );
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
+/**
+ * Adiciona um novo cliente
+ *
+ * @param {JSON} props valores
+ * @returns JSON
+ */
 async function add({ nome, cpf, dataNascimento, sexo }) {
   if (!(nome && cpf && dataNascimento && sexo)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -31,6 +57,12 @@ async function add({ nome, cpf, dataNascimento, sexo }) {
   return { message: 'Error in creating client', statusCode: 500 };
 }
 
+/**
+ * Busca apenas um único cliente
+ *
+ * @param {Number} id identificador do cliente
+ * @returns JSON
+ */
 async function get(id) {
   if (!id) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -49,6 +81,12 @@ async function get(id) {
   return { message: 'Client not found', statusCode: 404 };
 }
 
+/**
+ * Atualiza um cliente específico
+ *
+ * @param {JSON} props conteúdo
+ * @returns JSON
+ */
 async function update(id, { nome, cpf, dataNascimento, sexo }) {
   if (!(id && nome && cpf && dataNascimento && sexo)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -67,6 +105,12 @@ async function update(id, { nome, cpf, dataNascimento, sexo }) {
   return { message: 'Error in updating client', statusCode: 404 };
 }
 
+/**
+ * Remove um cliente específico
+ *
+ * @param {Number} id identificador do cliente
+ * @returns JSON
+ */
 async function remove(id) {
   if (!id) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -85,7 +129,7 @@ async function remove(id) {
  * Busca um cliente
  *
  * @param {JSON} props args passado por HTTP
- * @returns
+ * @returns JSON
  */
 async function find(props) {
   const { text } = props;
@@ -99,7 +143,18 @@ async function find(props) {
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(
+    ({ idCliente, nome, cpf, dataNascimento, sexo }) => ({
+      id: idCliente,
+      nome,
+      cpf,
+      dataNascimento: SqlDateToBrl(dataNascimento),
+      sexo,
+    })
+  );
+
   return {
     values,
   };

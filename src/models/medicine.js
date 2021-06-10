@@ -1,18 +1,37 @@
 const db = require('../services/db');
 const helper = require('../utils/helper');
 
-async function getAll(page = 1) {
+/**
+ * Retorna todos os medicamentos
+ *
+ * @param {Number} page número da página
+ * @returns JSON
+ */
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Medicamentos;');
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return {
-    values,
-    meta,
-  };
+  if (format) {
+    // Formatando para a tabela
+    const values = result.map(({ idMedicamento, nome, unidades, valor }) => ({
+      id: idMedicamento,
+      nome,
+      unidades,
+      valor: `R$ ${valor}`,
+    }));
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
+/**
+ * Adiciona um novo medicamento
+ *
+ * @param {JSON} props valores
+ * @returns JSON
+ */
 async function add({ nome, unidades, valor }) {
   if (!(nome && unidades && valor)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -31,6 +50,12 @@ async function add({ nome, unidades, valor }) {
   return { message: 'Error in creating medicine', statusCode: 500 };
 }
 
+/**
+ * Busca apenas um único medicamento
+ *
+ * @param {Number} id identificador do medicamento
+ * @returns JSON
+ */
 async function get(id) {
   if (!id) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -49,6 +74,12 @@ async function get(id) {
   return { message: 'Medicine not found', statusCode: 404 };
 }
 
+/**
+ * Atualiza um medicamento específico
+ *
+ * @param {JSON} props conteúdo
+ * @returns JSON
+ */
 async function update(id, { nome, unidades, valor }) {
   if (!(id && nome && unidades && valor)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -67,6 +98,12 @@ async function update(id, { nome, unidades, valor }) {
   return { message: 'Error in updating medicine', statusCode: 404 };
 }
 
+/**
+ * Remove um medicamento específico
+ *
+ * @param {Number} id identificador do medicamento
+ * @returns JSON
+ */
 async function remove(id) {
   if (!id) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
@@ -85,10 +122,10 @@ async function remove(id) {
 }
 
 /**
- * Busca um Funcionário
+ * Busca um medicamento
  *
  * @param {JSON} props args passado por HTTP
- * @returns
+ * @returns JSON
  */
 async function find(props) {
   const { text } = props;
@@ -102,7 +139,15 @@ async function find(props) {
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(({ idMedicamento, nome, unidades, valor }) => ({
+    id: idMedicamento,
+    nome,
+    unidades,
+    valor: `R$ ${valor}`,
+  }));
+
   return {
     values,
   };

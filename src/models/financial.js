@@ -1,40 +1,57 @@
 const db = require('../services/db');
+const { SqlDateToBrl } = require('../utils/dateTransformer');
 const helper = require('../utils/helper');
 
 /**
  * Retorna todas as finanças
  *
- * @param {Integer} page número da página
- * @returns {JSON}
+ * @param {Number} page número da página
+ * @returns JSON
  */
-async function getAll(page = 1) {
+async function getAll({ page = 1, format }) {
   const offset = helper.getOffset(page, 10);
   const rows = await db.query('SELECT * FROM Financeiro order by data;');
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
   const meta = { page };
 
-  return {
-    values,
-    meta,
-  };
+  // Formatando para tabela
+  if (format) {
+    const values = result.map(
+      ({ idTransacao, contato, data, descricao, tipo, situacao, valor }) => ({
+        id: idTransacao,
+        contato,
+        data: SqlDateToBrl(data),
+        tipo,
+        descricao,
+        situacao: !!situacao,
+        valor: `R$ ${valor}`,
+      })
+    );
+    return { values, meta };
+  }
+  return { values: result, meta };
 }
 
 /**
  * Adiciona uma nova finança
  *
  * @param {JSON} props valores
- * @returns {JSON}
+ * @returns JSON
  */
 async function add(props) {
-  const { data, descricao, situacao, valor, devedor } = props;
-  if (!(data && descricao && situacao && valor && devedor)) {
+  const { data, descricao, tipo, situacao, valor, contato } = props;
+
+  const allParams =
+    data && descricao && tipo && situacao !== undefined && valor && contato;
+
+  if (!allParams) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
   }
 
   const result = await db.query(
-    `INSERT INTO Financeiro (data, descricao, situacao, valor, devedor) 
-    values(?,?,?,?,?);`,
-    [data, descricao, situacao, valor, devedor]
+    `INSERT INTO Financeiro (data, descricao, tipo, situacao, valor, contato) 
+    values(?,?,?,?,?,?);`,
+    [data, descricao, tipo, situacao, valor, contato]
   );
 
   const id = result.insertId;
@@ -47,8 +64,9 @@ async function add(props) {
 
 /**
  * Busca apenas uma única finança
+ *
  * @param {Number} id identificador da finança
- * @returns {JSON}
+ * @returns JSON
  */
 async function get(id) {
   if (!id) {
@@ -71,19 +89,23 @@ async function get(id) {
 /**
  * Atualiza uma finança específica
  *
- * @param {JSON} props
- * @returns {JSON}
+ * @param {JSON} props conteúdo
+ * @returns JSON
  */
 async function update(id, props) {
-  const { data, descricao, situacao, valor, devedor } = props;
-  if (!(data && descricao && situacao && valor && devedor)) {
+  const { data, descricao, tipo, situacao, valor, contato } = props;
+
+  const allParams =
+    data && descricao && tipo && situacao !== undefined && valor && contato;
+
+  if (!allParams) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
   }
 
   const result = await db.query(
-    `UPDATE Financeiro SET data=?, descricao=?, situacao=?, valor=?, devedor=?
+    `UPDATE Financeiro SET data=?, descricao=?, tipo=?, situacao=?, valor=?, contato=?
     WHERE idTransacao=?;`,
-    [data, descricao, situacao, valor, devedor, id]
+    [data, descricao, tipo, situacao, valor, contato, id]
   );
 
   if (result.affectedRows) {
@@ -97,7 +119,7 @@ async function update(id, props) {
  * Remove um finança específica
  *
  * @param {Number} id identificador da finança
- * @returns {JSON}
+ * @returns JSON
  */
 async function remove(id) {
   if (!id) {
@@ -119,7 +141,7 @@ async function remove(id) {
  * Busca um finança
  *
  * @param {JSON} props args passado por HTTP
- * @returns
+ * @returns JSON
  */
 async function find(props) {
   const { text } = props;
@@ -129,11 +151,24 @@ async function find(props) {
 
   const rows = await db.query(
     `SELECT * FROM Financeiro
-    WHERE devedor like ? order by data;`,
+    WHERE contato like ? order by data;`,
     [`%${text}%`]
   );
 
-  const values = helper.emptyOrRows(rows);
+  const result = helper.emptyOrRows(rows);
+
+  const values = result.map(
+    ({ idTransacao, contato, data, descricao, tipo, situacao, valor }) => ({
+      id: idTransacao,
+      contato,
+      data: SqlDateToBrl(data),
+      tipo,
+      descricao,
+      situacao: !!situacao,
+      valor: `R$ ${valor}`,
+    })
+  );
+
   return {
     values,
   };

@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth');
 
 router.get('/', authMiddleware, async function (req, res, next) {
   try {
-    res.json(await employee.getAll());
+    res.json(await employee.getAll(req.query));
   } catch (err) {
     console.error(`Erro ao buscar os funcionários `, err.message);
     next(err);
@@ -33,10 +33,10 @@ router.post('/', authMiddleware, async function (req, res, next) {
 
 router.post('/login', async function (req, res, next) {
   try {
-    const { message, statusCode, token } = await employee.authenticate(
+    const { message, statusCode, user, token } = await employee.authenticate(
       req.body
     );
-    res.status(statusCode).json({ message, token });
+    res.status(statusCode).json({ message, user, token });
   } catch (err) {
     console.error(`Error while creating user `, err.message);
     next(err);
