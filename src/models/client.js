@@ -36,17 +36,17 @@ async function getAll({ page = 1, format }) {
  * @param {JSON} props valores
  * @returns JSON
  */
-async function add({ nome, cpf, dataNascimento, sexo }) {
+async function add({ nome, cpf, dataNascimento, sexo, anamnese }) {
   if (!(nome && cpf && dataNascimento && sexo)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
   }
 
   const result = await db.query(
     `INSERT INTO Cliente
-    (nome,cpf,dataNascimento,sexo) 
+    (nome,cpf,dataNascimento,sexo,anamnese) 
     values
-    (?,?,?,?);`,
-    [nome, cpf, dataNascimento, sexo]
+    (?,?,?,?,?);`,
+    [nome, cpf, dataNascimento, sexo, anamnese]
   );
 
   const id = result.insertId;
@@ -87,15 +87,15 @@ async function get(id) {
  * @param {JSON} props conteúdo
  * @returns JSON
  */
-async function update(id, { nome, cpf, dataNascimento, sexo }) {
+async function update(id, { nome, cpf, dataNascimento, sexo, anamnese }) {
   if (!(id && nome && cpf && dataNascimento && sexo)) {
     return { message: 'Bad Request, malformed syntax', statusCode: 400 };
   }
 
   const result = await db.query(
-    `UPDATE Cliente SET nome=?, cpf=?, dataNascimento=?, sexo=? 
+    `UPDATE Cliente SET nome=?, cpf=?, dataNascimento=?, sexo=?, anamnese=?
     WHERE idCliente=?;`,
-    [nome, cpf, dataNascimento, sexo, id]
+    [nome, cpf, dataNascimento, sexo, anamnese, id]
   );
 
   if (result.affectedRows) {
